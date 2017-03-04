@@ -76,11 +76,11 @@ curl wttr.in
 
 # One liner to see gmail entries
 
-curl -u leanhack:socotroco1616 --silent "https://mail.google.com/mail/feed/atom" | tr -d '\n' | awk -F '<entry>' '{for (i=2; i<=NF; i++) {print $i}}' | sed -n "s/<title>\(.*\)<\/title.*name>\(.*\)<\/name>.*/\2 - \1/p"
+curl -u user:password --silent "https://mail.google.com/mail/feed/atom" | tr -d '\n' | awk -F '<entry>' '{for (i=2; i<=NF; i++) {print $i}}' | sed -n "s/<title>\(.*\)<\/title.*name>\(.*\)<\/name>.*/\2 - \1/p"
 
 # count how many gmails do you have
 
-curl -u leanhack:socotroco1616 --silent "https://mail.google.com/mail/feed/atom" | awk -F '<entry>' '{for (i=2; i<=NF; i++) {print $i}}' | wc -l
+curl -u user:password --silent "https://mail.google.com/mail/feed/atom" | awk -F '<entry>' '{for (i=2; i<=NF; i++) {print $i}}' | wc -l
 
 
 # Look for high priority errors in the systemd journal
