@@ -8,9 +8,6 @@
 
 ### ARCH LINUX ###
 
-# Filter delete links using sed
-sed 's|http://livelinks.online/go.php?u=||g' back.txt > back.txt
-
 ### Radeon hud to display usefull information about the workload of your game or application 
 
 # To see option available
@@ -11036,7 +11033,7 @@ sed -i  "s/\/usr\/sbin\/sinc_puppet_inst\ \&/#&/" /etc/rc.local   - Donde el & r
 
 #### Filter delete links using sed ####
 
-sed 's|http://livelinks.online/go.php?u=||g' back.txt > back_back.txt
+sed 's|http://whatevershortner.com/short.php?u=||g' back.txt > back_back.txt
 
 #### Filter clean youtube urls ####
 
