@@ -12837,11 +12837,102 @@ user
 
 verbose
 
+#### Installing and configuring a ftp server in ubuntu 14.04
+
+# FTP is used to transfer files from one host to another over TCP network. This article explains how to setup FTP server on ubuntu 14.04 There are 3 popular FTP server packages available PureFTPD, VsFTPD and ProFTPD. Here i’ve used VsFTPD which is lightweight and less Vulnerability.
+
+# Step 1  Update repositories .
+
+[email protected]:~$ sudo apt-get update
+
+# Step 2  Install VsFTPD package using the below command.
+
+[email protected]:~$ sudo apt-get install vsftpd
+
+# Step 3 After installation open /etc/vsftpd.conf file and make changes as follows.
+
+Uncomment the below lines (line no:29 and 33).
+write_enable=YES
+local_umask=022
+
+# Uncomment the below line (line no: 120 ) to prevent access to the other folders outside the Home directory.
+
+chroot_local_user=YES
+and add the following line at the end.
+allow_writeable_chroot=YES
+
+# Add the following lines to enable passive mode.
+
+pasv_enable=Yes
+pasv_min_port=40000
+pasv_max_port=40100
+
+# Step 4  Restart vsftpd service using the below command.
+
+[email protected]:~$ sudo service vsftpd restart
+
+# Step 5  Now ftp server will listen on port 21. Create user with the below command.Use /usr/sbin/nologin shell to prevent access to the bash shell for the ftp users .
+
+[email protected]:~$ sudo useradd -m john -s /usr/sbin/nologin
+[email protected]:~$ sudo passwd john
+
+# Step 6  Allow login access for nologin shell . Open /etc/shells and add the following line at the end.
+
+/usr/sbin/nologin
+
+# Now try to connect this ftp server with the username on port 21 using winscp or filezilla client and make sure that user cannot access the other folders outside the home directory. setup FTP server ubuntu 14.04
+
+# Please note using ftp on port 21 is a big security risk . it’s highly recommended to use SFTP. Please continue for SFTP configuration Secure FTP ( SFTP )
+
+# SFTP is called as “Secure FTP” which generally use SSH File Transfer Protocol . so we need openssh-server package installed , Issue the below command if it’s not already installed.
+
+[email protected]:~$ sudo apt-get install openssh-server
+
+# Step 7  Create a new group ftpaccess for FTP users.
+
+[email protected]:~$ sudo groupadd ftpaccess
+
+# Step 8  Now make changes in this /etc/ssh/sshd_config file. Find and comment the below line
+
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# And Add these lines at the end of the file.
+
+Subsystem sftp internal-sftp
+Match group ftpaccess
+ChrootDirectory %h
+X11Forwarding no
+AllowTcpForwarding no
+ForceCommand internal-sftp
+
+# Step 9  Restart sshd service.
+
+[email protected]:~$ sudo service ssh restart
+
+# Step 10  The below steps must be followed while creating Users for sftp access. Create user john with ftpaccess group and /usr/bin/nologin shell.
+
+[email protected]:~$ sudo useradd -m john -g ftpaccess -s /usr/sbin/nologin
+[email protected]:~$ sudo passwd john
+Change ownership for the home directory.
+[email protected]:~$ sudo chown root /home/john
+Create a folder inside home directory for writing and change ownership of that folder.
+[email protected]:~$ sudo mkdir /home/john/www
+[email protected]:~$ sudo chown john:ftpaccess /home/john/www
+
+# Now try to connect server using SFTP ( port : 22 ) and makesure Users can upload files to www directory and cannot access other folders outside home directory.setup FTP server ubuntu 14.04If you want use both FTP and SFTP together, please perform above steps ( Step 10 ) while creating users . For existing users, move them to ftpaccess group and create folder structure and ownership changes as below.
+
+[email protected]:~$ sudo usermod john -g ftpaccess -s /usr/sbin/nologin
+[email protected]:~$ sudo chown root /home/john
+[email protected]:~$ sudo mkdir /home/john/www
+[email protected]:~$ sudo chown john:ftpaccess /home/john/www
+
+Now john can able to upload files to www folder using FTP as well as SFTP
 
 
 #### nota: "ncftp" es un cliente ftp (file transfer protocol) basado en ncurses ####
 
 #### nota: "ftp-ssl" cliente ftp con soporte de cifrado ssl y tsl.(dependiendo de la otra parte) ####
+
 
 #############################################################################################################################################################################################
 
