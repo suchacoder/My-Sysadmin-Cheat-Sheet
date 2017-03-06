@@ -4465,6 +4465,10 @@ gpg archivo.txt.gpg
 
 gpg --gen-key
 
+#### using gpg to generate gpg files to be decipher by offlineimap and msmtp
+
+gpg --default-recipient-self -e /path/to/plain/password
+
 #### solucion error gpg error repositorios ppa ####
 
 sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com <nuero_error>
