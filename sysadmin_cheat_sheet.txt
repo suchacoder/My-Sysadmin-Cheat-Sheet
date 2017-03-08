@@ -2057,7 +2057,6 @@ HandBrakeCLI -i foo -o "stuff3.m4v" --start-at duration:10 --stop-at duration:10
 Y ya esta. A partir de ahora, cada vez que nos conectemos a la maquina remota, tendremos acceso sin tener que teclear la password
 
 
-
 #### Arch way:
 
 # Generatin pub and private keys on the local machine
@@ -15978,6 +15977,8 @@ spell:
 stocks: seguido de un codigo de bolsa, te dara los datos concretos.
 
 store: (solo funciona en froogle) te limita las busquedas a un determinado comercio.
+
+intitle:index.of? mkv Movie Name
 
 #############################################################################################################################################################################################
 
