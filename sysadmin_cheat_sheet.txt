@@ -11174,7 +11174,7 @@ antes de poder administrar nuestro firewall tendremos que saber para que nos sir
 
 #### tablas ####
 
-cuando nosotros enviamos un paquete o una solicitud de servicio este pasa por 3tipos de tablas que debemos conocer. 
+cuando nosotros enviamos un paquete o una solicitud de servicio este pasa por 3 tipos de tablas que debemos conocer. 
 
 
 #### nat ####
@@ -11243,17 +11243,17 @@ hasta este momento solamente sabemos sobre los conceptos de iptables pero ahora 
 opcion descripcion 
 
 -A agrega una cadena iptables al firewall. 
--c verifica una cadena antes de anadirla al firewall. 
--d borra una cadena de iptables en el firewall 
--e renombra una cadena de iptables. 
--f libera o limpia de cadena en el firewall. 
--i inserta una cadena en una cadena en un punto especificado por un valor entero definido por el usuario. 
--l lista todas las cadena de iptables aplicadas en el firewall. 
--n crea una nueva cadena con un nombre especificando por el usuario. 
--p configura la politica por defecto en una cadena en particular y puede ser ACCEPT o DROP. 
--r reemplaza una regla en una cadena en particular, se debe especificar el numero de regla. 
--x borra cadenas especificada por el usuario, no se permiten borrar cadenas no creada por el usuario. 
--z pone en ceros los contadores de bytes y de paquetes. 
+-C verifica una cadena antes de anadirla al firewall. 
+-D borra una cadena de iptables en el firewall 
+-E renombra una cadena de iptables. 
+-F libera o limpia de cadena en el firewall. 
+-I inserta una cadena en una cadena en un punto especificado por un valor entero definido por el usuario. 
+-L lista todas las cadena de iptables aplicadas en el firewall. 
+-N crea una nueva cadena con un nombre especificando por el usuario. 
+-P configura la politica por defecto en una cadena en particular y puede ser ACCEPT o DROP. 
+-R reemplaza una regla en una cadena en particular, se debe especificar el numero de regla. 
+-X borra cadenas especificada por el usuario, no se permiten borrar cadenas no creada por el usuario. 
+-Z pone en ceros los contadores de bytes y de paquetes. 
 
 
 #### parametros iptables ####
@@ -11295,9 +11295,9 @@ iptables -X
 iptables -Z
 
 ## establecemos politica por defecto de cada de una de la tablas. 
-iptables -p INPUT ACCEPT 
-iptables -p OUTPUT ACCEPT 
-iptables -p FORWARD ACCEPT 
+iptables -P INPUT ACCEPT 
+iptables -P OUTPUT ACCEPT 
+iptables -P FORWARD ACCEPT 
 
 #aceptamos conexiones locales en la interfaz lo 
 iptables -A INPUT -i lo -j ACCEPT 
@@ -11314,7 +11314,7 @@ iptables -A INPUT -i eth0 -p UDP --dport 1:1024 -j REJECT
 
 solamente queda verificar que haya ejecutado las reglas correctamente, para verificarlo ejecutamos el siguiente comando. 
 
-lucifer:~# iptables -nl 
+lucifer:~# iptables -nL
 
 
 #### firewall lan ####
@@ -11331,9 +11331,9 @@ iptables -Z
 iptables -t nat -F
 
 ### establecemos politica por defecto 
-iptables -p INPUT ACCEPT 
-iptables -p OUTPUT ACCEPT 
-iptables -p FORWARD ACCEPT 
+iptables -P INPUT ACCEPT 
+iptables -P OUTPUT ACCEPT 
+iptables -P FORWARD ACCEPT 
 iptables -t nat -p prerouting ACCEPT 
 iptables -t nat -p postrouting ACCEPT 
 
@@ -11343,7 +11343,7 @@ iptables -t nat -a prerouting -i ppp0 -p TCP --dport 80 -j DNAT --to 192.168.1.1
 
 ### todas la peticiones que vengan de internet hacia el puerto 21 redirigirlo a la maquina de la red 
 local con ip 192.168.1.52:21. 
-iptables -t nat -a prerouting -i ppp0 -p TCP --dport 21 -j DNAT --to 192.168.1.52:21 
+iptables -t nat -A PREROUTING -i ppp0 -p TCP --dport 21 -j DNAT --to 192.168.1.52:21 
 
 ### aceptamos conexiones locales en la interfaz lo 
 iptables -A INPUT -i lo -j ACCEPT 
@@ -11364,7 +11364,7 @@ iptables -A FORWARD -s 192.168.1.0/24 -i eth1 -p UDP --dport 53 -j ACCEPT
 iptables -A FORWARD -s 192.168.1.0/24 -i eth1 -j REJECT 
 
 ### ahora hacemos enmascaramiento de la red local 
-iptables -t nat -a postrouting -s 192.168.1.0/24 -o eth0 -j MASQUERADE 
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE 
 echo 1 > /proc/sys/net/ipv4/ip_forward 
 
 #rechaza todas la demas conexiones desde el puerto 1 al 1024 por protocolo TCP/UDP por la interfaz de red eth0. 
@@ -11380,21 +11380,21 @@ ahora veremos como configurar nuestro firewall con la comunicacion de la lan/int
 * desde internet se permitira conectarse a servicios de apache que se encuentran en dmz. 
 
 ## limpiando reglas de iptables en todas las tablas. 
-iptables -f 
-iptables -x 
-iptables -z 
-iptables -t nat -f 
+iptables -F
+iptables -X 
+iptables -Z 
+iptables -t nat -F
 
 ### establecemos politica por defecto 
-iptables -p INPUT ACCEPT 
-iptables -p OUTPUT ACCEPT 
-iptables -p FORWARD ACCEPT 
-iptables -t nat -p prerouting ACCEPT 
-iptables -t nat -p postrouting ACCEPT 
+iptables -F INPUT ACCEPT 
+iptables -F OUTPUT ACCEPT 
+iptables -F FORWARD ACCEPT 
+iptables -t nat -P PREROUTING ACCEPT 
+iptables -t nat -P POSTROUTING ACCEPT 
 
 ### todas la peticiones que vengan de internet hacia el puerto 8080 redirigirlo a la maquina de la dmz con ip 10.0.2.30:80. 
 
-iptables -t nat -a prerouting -i ppp0 -p TCP --dport 8080 -j DNAT --to 10.0.2.30:80 
+iptables -t nat -A PREROUTING -i ppp0 -p TCP --dport 8080 -j DNAT --to 10.0.2.30:80 
 
 ### aceptamos conexiones locales en la interfaz lo 
 iptables -A INPUT -i lo -j ACCEPT 
@@ -11404,8 +11404,8 @@ iptables -A INPUT -s 192.168.1.0/24 -i eth1 -j ACCEPT
 iptables -A INPUT -s 10.0.2.0/24 -i eth2 -j ACCEPT 
 
 ### ahora hacemos enmascaramiento de la red local y dmz 
-iptables -t nat -A postrouting -s 192.168.1.0/24 -o eth0 -j MASQUERADE 
-iptables -t nat -A postrouting -s 10.0.2.0/24 -o eth0 -j MASQUERADE 
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE 
+iptables -t nat -A POSTROUTING -s 10.0.2.0/24 -o eth0 -j MASQUERADE 
 echo 1 > /proc/sys/net/ipv4/ip_forward 
 
 ### apache1 "conexion del servicio desde la red local a dmz" 
@@ -11444,7 +11444,7 @@ esta regla es de mucha ayuda para los administradores no tener que ir cliente po
 
 toda peticiones que venga por la interfaz de red eth1 y con salida al puerto 80 redirecciona al puerto 3128. 
 
-iptables -t nat -A prerouting -i eth1 -p TCP --dport 80 -j REDIRECT --to-port 3128 
+iptables -t NAT -A PREROUTING -i eth1 -p TCP --dport 80 -j REDIRECT --to-port 3128 
 
 
 #### bloquear pings ####
@@ -11492,16 +11492,16 @@ iptables -F
 
 #### 2. set default chain policies iptables ####
 
-iptables -p INPUT DROP
-iptables -p FORWARD DROP
-iptables -p OUTPUT DROP
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
 
 #### 3. block a specific ip-address iptables ####
 
 block_this_ip="x.x.x.x"
 iptables -A INPUT -s "$block_this_ip" -j DROP
 
-#### 4. allow all incoming ssh ssh iptables ####
+#### 4. allow all incoming ssh iptables ####
 
 iptables -A INPUT -i eth0 -p TCP --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
@@ -11531,7 +11531,7 @@ iptables -A OUTPUT -o eth0 -p TCP -m multiport --sports 22,80,443 -m state --sta
 iptables -A OUTPUT -o eth0 -p TCP --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
 
-#### 9. allow outgoing ssh ssh only to a specific network iptables ####
+#### 9. allow outgoing ssh only to a specific network iptables ####
 
 iptables -A OUTPUT -o eth0 -p TCP -d 192.168.101.0/24 --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
@@ -11573,7 +11573,7 @@ iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT
 iptables -A OUTPUT -p UDP -o eth0 --dport 53 -j ACCEPT
 iptables -A INPUT -p UDP -i eth0 --sport 53 -j ACCEPT
 
-#### 17. allow nis nis connections iptables ####
+#### 17. allow nis connections iptables ####
 #### rpcinfo -p | grep ypbind ; this port is 853 and 850 iptables ####
 
 iptables -A INPUT -p TCP --dport 111 -j ACCEPT
@@ -11588,7 +11588,7 @@ iptables -A INPUT -p UDP --dport 850 -j ACCEPT
 iptables -A INPUT -i eth0 -p TCP -s 192.168.101.0/24 --dport 873 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 873 -m state --state ESTABLISHED -j ACCEPT
 
-#### 19. allow mysql mysql connection only from a specific network iptables ####
+#### 19. allow mysql connection only from a specific network iptables ####
 
 iptables -A INPUT -i eth0 -p TCP -s 192.168.200.0/24 --dport 3306 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 3306 -m state --state ESTABLISHED -j ACCEPT
@@ -11598,7 +11598,7 @@ iptables -A OUTPUT -o eth0 -p TCP --sport 3306 -m state --state ESTABLISHED -j A
 iptables -A INPUT -i eth0 -p TCP --dport 25 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 25 -m state --state ESTABLISHED -j ACCEPT
 
-#### 21. allow imap imap and imaps imaps iptables ####
+#### 21. allow imap and imaps iptables ####
 
 iptables -A INPUT -i eth0 -p TCP --dport 143 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 143 -m state --state ESTABLISHED -j ACCEPT
@@ -11606,7 +11606,7 @@ iptables -A OUTPUT -o eth0 -p TCP --sport 143 -m state --state ESTABLISHED -j AC
 iptables -A INPUT -i eth0 -p TCP --dport 993 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 993 -m state --state ESTABLISHED -j ACCEPT
 
-#### 22. allow pop3 pop3 and pop3s pop3s iptables ####
+#### 22. allow pop3 and pop3s iptables ####
 
 iptables -A INPUT -i eth0 -p TCP --dport 110 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 110 -m state --state ESTABLISHED -j ACCEPT
@@ -11614,19 +11614,19 @@ iptables -A OUTPUT -o eth0 -p TCP --sport 110 -m state --state ESTABLISHED -j AC
 iptables -A INPUT -i eth0 -p TCP --dport 995 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 995 -m state --state ESTABLISHED -j ACCEPT
 
-#### 23. prevent dos attack iptables ####
+#### 23. prevent DOS attack iptables ####
 
 iptables -A INPUT -p TCP --dport 80 -m limit --limit 25/minute --limit-burst 100 -j ACCEPT
 
 #### 24. port forwarding 422 to 22 iptables ####
 
-iptables -t nat -a prerouting -p TCP -d 192.168.102.37 --dport 422 -j DNAT --to 192.168.102.37:22
+iptables -t nat -A PREROUTING -p TCP -d 192.168.102.37 --dport 422 -j DNAT --to 192.168.102.37:22
 iptables -A INPUT -i eth0 -p TCP --dport 422 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o eth0 -p TCP --sport 422 -m state --state ESTABLISHED -j ACCEPT
 
 #### 25. Log dropped packets iptables ####
 
-iptables -n logging
+iptables -N logging
 iptables -A INPUT -j logging
 iptables -A logging -m limit --limit 2/min -j LOG --log-prefix "iptables packet dropped: " --log-level 7
 iptables -A logging -j DROP
@@ -11933,33 +11933,33 @@ ZIMBABWE                                        ZW      ZWE     716
 
 #### mostrar todas las cadenas de la tabla de filtro ####
 
-iptables -t filter -l
+iptables -t filter -L
 
 #### mostrar todas las cadenas de la tabla nat ####
 
-iptables -t nat -l
+iptables -t nat -L
 
 #### limpiar todas las reglas de la tabla de filtro ####
 
-iptables -t filter -f
+iptables -t filter -F
 
 #### limpiar todas las reglas de la tabla nat ####
 
-iptables -t nat -f
+iptables -t nat -F
 
 #### borrar cualquier cadena creada por el usuario ####
 
-iptables -t filter -x
+iptables -t filter -X
 
-#### permitir las conexiones telnet para entar ####
+#### permitir las conexiones telnet entrantes ####
 
 iptables -t filter -A INPUT -p TCP --dport telnet -j ACCEPT
 
-#### bloquear las conexiones http para salir ####
+#### bloquear las conexiones http salientes ####
 
 iptables -t filter -A OUTPUT -p TCP --dport http -j DROP
  
-#### permitir las conexiones pop a una cadena delantera ####
+#### permitir las conexiones POP a una cadena delantera ####
 
 iptables -t filter -A FORWARD -p TCP --dport pop3 -j ACCEPT
 
@@ -11973,16 +11973,14 @@ iptables -t nat -A postrouting -o eth0 -j MASQUERADE
 
 #### redireccionar los paquetes diriguidos de un host a otro ####
 
-iptables -t nat -A prerouting -d 192.168.0.1 -p TCP -m TCP --dport 22 -j DNAT --to-destination 10.0.0.2:22
-
-
+iptables -t NAT -A PREROUTING -d 192.168.0.1 -p TCP -m TCP --dport 22 -j DNAT --to-destination 10.0.0.2:22
 
 
 #### notas ####
 
-#### redireccionar trafica con iptables ####
+#### redireccionar trafico con iptables ####
 
-iptables -t nat -A prerouting -p TCP --destination-port 80 -j REDIRECT --to-port 10000
+iptables -t NAT -A PREROUTING -p TCP --destination-port 80 -j REDIRECT --to-port 10000
 
 
 
@@ -12086,13 +12084,10 @@ iptables -A FORWARD -p TCP -m ipp2p --soul -j DROP
 iptables -A FORWARD -p TCP -m ipp2p --ares -j DROP
 
 
-
-
 #### Strong firewall configuration for Linux with blacklist / blocklist auto update ####
 
 	
 Strong firewall configuration for Linux with blacklist / blocklist auto update
-Posted on November 17, 2014 Leave a Comment
 
 For me, this guide and scripts have been a work in progress and at its current iteration, version 2.6.1, it has features that I’ve tested, features I’ve modified due to causing issues with hosted services, and the newest feature that I’ve just begun testing, the blocklist via ipset. The ipset tool is great, allows you to make lists of IPv4 or IPv6 addresses and work with them in iptables or another program.
 This started as a way for me to maintain a safe hosting environment and operate a hardened server. Turns out many firewall configurations don’t enable egress filtering, mine does. This is actually a massive security improvement and the value cannot be overstated.
