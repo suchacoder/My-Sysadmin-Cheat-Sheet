@@ -11444,7 +11444,7 @@ esta regla es de mucha ayuda para los administradores no tener que ir cliente po
 
 toda peticiones que venga por la interfaz de red eth1 y con salida al puerto 80 redirecciona al puerto 3128. 
 
-iptables -t NAT -A PREROUTING -i eth1 -p TCP --dport 80 -j REDIRECT --to-port 3128 
+iptables -t nat -A PREROUTING -i eth1 -p TCP --dport 80 -j REDIRECT --to-port 3128 
 
 
 #### bloquear pings ####
@@ -11973,14 +11973,14 @@ iptables -t nat -A postrouting -o eth0 -j MASQUERADE
 
 #### redireccionar los paquetes diriguidos de un host a otro ####
 
-iptables -t NAT -A PREROUTING -d 192.168.0.1 -p TCP -m TCP --dport 22 -j DNAT --to-destination 10.0.0.2:22
+iptables -t nat -A PREROUTING -d 192.168.0.1 -p TCP -m TCP --dport 22 -j DNAT --to-destination 10.0.0.2:22
 
 
 #### notas ####
 
 #### redireccionar trafico con iptables ####
 
-iptables -t NAT -A PREROUTING -p TCP --destination-port 80 -j REDIRECT --to-port 10000
+iptables -t nat -A PREROUTING -p TCP --destination-port 80 -j REDIRECT --to-port 10000
 
 
 
