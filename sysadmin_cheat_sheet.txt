@@ -2989,6 +2989,15 @@ Let us help your firm protect data on any platform while reducing cost and compl
 
 # Testing your SSH connection to github
 
+# Create a new repository on the command line
+
+echo "# such-global-css" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/suchacoder/such-global-css.git
+git push -u origin master
+
 # Cloning
 
 git --clone <url> <dir>
