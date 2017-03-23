@@ -4250,6 +4250,145 @@ sudo lsof -o -p $PID   - lsof -o -p 2042
 sudo lsof -i -n
 
 
+#### javarevisted
+
+1) How to list all open files by all process
+
+$ lsof
+
+Simply running lsof without any argument print all opened file and process. This is not particularly useful 
+but a good starting point.
+
+2) How to list all process which has opened a file
+
+$ lsof /home/someuser/somefile
+
+will list all the process which has opened this file. you can see the command, PID, user and full file path to 
+find out the process.
+
+3) How to find all opened files by a user 
+You can use lsof -u command to list all opened file by a user as shown below
+
+$ lsof -u username
+
+You can provide comma separated list of users to find list of open files by multiple users as shown below
+
+$ lsof -u user1,user2,user3
+
+You can do the same by providing -u option multiple times :
+
+$ lsof -u user1 -u user2
+
+Here is a summary of all 10 examples of lsof command in UNIX:
+
+lsof command example to find all process listening on a port
+
+4) How to list all files opened by a particular command
+You can use lsof -c option to provide name of command and list down all the files opened by that command, for 
+example, to list all file opened by java process, you can do this :
+
+$ lsof -c java
+
+This is better than using grep for filtering, as instead of writing lsof | grep java, you can just write lsof 
+-c java.
+
+You can also find all files opened by apache which runs as httpd as shown below :
+
+lsof -c httpd
+
+Just like multiple users, you can also combine multiple processes name to list down files hold by them e.g.
+
+$ lsof -c java -c httpd
+
+5) How to find all files opened by a particular user and command
+You can combine users and process name in one lsof command to list down all the files opened by a particular 
+process or a particular user as shown below :
+
+$ lsof -u root -c java
+
+This will list all files opened or hold by root user + all files opened by the java process. See  The Linux 
+Command Line: A Complete Introduction, a
+
+Linux lsof command Example
+
+6) How to find files opened by USER and process
+Like previous option, you can also combine user and process by using lsof option '-a'. This is like AND 
+logical operator and will only list files, which matches both options e.g.
+
+$ lsof -a -u root - c java
+
+will only list files opened by java process which is running under root user
+
+7) lsof with negation operator
+Similar to AND and OR operator used earlier, you can also use negation operator with lsof command e.g.
+
+$ lsof - u ^root
+
+will list all files opened by all user except root
+
+8) How to list all open files by a process using PID
+As I told, I mostly use lsof command to find all files opened by a particular process. In order to do that 
+sometimes, I usually use grep command to filter lsof output by PID, but you can also use lsof -p option to do 
+the same, as shown below :
+
+$ lsof -p 17783
+
+will list all files opened by the process with PID 17783.
+
+List users and processes, you can also supply multiple PIDs to find files opened by multiple processes e.g. :
+
+$ lsof -p 17783,17754,17984
+
+will list all files opened by the process with PIDs 17783,17754,17984. You can also see the Practical Guide to 
+Linux Commands, Editors, and Shell Programming 3rd Edition by Mark G. Sobell to learn more about how to find a 
+process in UNIX.
+
+How to use lsof command in UNIX and Linux
+
+9) How to list all network connection
+You can use lsof - i option to find all open network connections which is nothing but open internet sockets 
+(TCP and UDP), for example
+
+$ lsof -i 
+
+You can further find all TPC connection by using tcp option as shown below :
+
+$ lsof -i tcp
+
+Similarly, to find all open udp connections you can do :
+
+$ lsof -i udp
+
+will list all process with open internet sockets.
+
+10) How to find which process is using a port 
+Though you can do this with netstat command as well, you would be surprised to know that you can find all 
+process using a particular TCP or UDP port using lsof command. For example :
+
+$ lsof -i :19500 
+
+will find the process which is using TCP or UDP port 19500
+
+You can even names defined in etc/services instead of port number e.g.
+
+$ lsof -i :smtp
+
+will print process using the smtp port.
+
+You can also combine tcp and udp with port to do more specific search e.g. to find all process in UNIX which 
+are uses tcp port number 19600 you can do following :
+
+$ lsof -i tcp:19600 
+
+and to find all process which is using UDP port 17600 you can use
+
+$ lsof -i udp:17600
+
+That's all about 10 examples of lsof command in UNIX and Linux. As I said, it's incredibly useful to find the 
+list of files opened by a particular process or to find all the process which holds a lock on a file. Since 
+almost everything is a file in UNIX, you can use lsof to find out open socket, directory, symbolic link, 
+internet socket and many others. You can also see lsof man page for full documentation and more options.
+
 #############################################################################################################################################################################################
 
 ############################################################################################ lftp ###########################################################################################
