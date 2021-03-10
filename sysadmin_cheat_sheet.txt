@@ -2413,6 +2413,10 @@ rssh support chroot environments for scp, rsync and other transfer protocols. It
 
 AllowUsers username
 
+# Fix for bug: Bad port 'umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat >> ~/.ssh/authorized_keys'
+
+ssh-copy-id -i /home/user/.ssh/id_rsa.pub '-p 57777 user@192.168.1.111' <--- use single quote to fix the bug
+
 ########################################################################################## kippo ssh ########################################################################################
 
 #### kippo
@@ -3546,6 +3550,10 @@ sleep 5 ; import -window root leanhack.png
 
 ifconfig | convert -background green -fill white -font courier -pointsize 12 label:@- ifconfig.png
 
+#### Reduce weight in images
+
+convert -quality 90 image.png output_image.png
+
 #### escalar imagenes darle mas resolucion ####
 
 convert -geometry 1200x800 archivo_original.jpg archivo_salida.jpg
@@ -3925,6 +3933,14 @@ Si habeis desactivado alguna, anadiendo a su nombre .disabled, no aparecera en l
 |     +-------------------- hour (0 - 23)
 +-------------------------- min (0 - 59)
 
+# Minute (hold values between 0-59)
+# Hour (hold values between 0-23)
+# Day of Month (hold values between 1-31)
+# Month of the year (hold values between 1-12 or Jan-Dec, you can use first three letters of each month’s name i.e Jan or Jun.)
+# Day of week (hold values between 0-6 or Sun-Sat, Here also you can use first three letters of each day’s name i.e Sun or Wed. )
+# Command
+
+
 #### buscar si algun usuario en el sistema tiene trabajos automatizados con crontab ####
 
 for user in `cat /etc/passwd | grep bash | awk -f: {'print $1'}`; do crontab -u $user -l; done
@@ -4095,6 +4111,113 @@ USAGE 20:How to run the script At 10:30 P.M., every weekday.
 sudo crontab -e
 
 0 6 * * * /sbin/shutdown -r +5
+
+
+#### tecmint:
+
+In this article we are going to review and see how we can schedule and run tasks in the background automatically at regular intervals using Crontab command. Dealing a frequent job manually is a daunting task for system 
+administrator. Such process can be schedule and run automatically in the background without human intervene using cron daemon in Linux or Unix-like operating system.
+
+For instance, you can automate process like backup, schedule updates and synchronization of files and many more. Cron is a daemon to run schedule tasks. Cron wakes up every minute and checks schedule tasks in crontable. Crontab 
+(CRON TABle) is a table where we can schedule such kind of repeated tasks.
+
+Tips: Each user can have their own crontab to create, modify and delete tasks. By default cron is enable to users, however we can restrict adding entry in /etc/cron.deny file.
+Linux Cron ExamplesLinux Cron Examples
+
+11 Cron Command Examples in Linux
+
+
+Crontab file consists of command per line and have six fields actually and separated either of space or tab. The beginning five fields represent time to run tasks and last field is for command.
+
+    Minute (hold values between 0-59)
+    Hour (hold values between 0-23)
+    Day of Month (hold values between 1-31)
+    Month of the year (hold values between 1-12 or Jan-Dec, you can use first three letters of each month’s name i.e Jan or Jun.)
+    Day of week (hold values between 0-6 or Sun-Sat, Here also you can use first three letters of each day’s name i.e Sun or Wed. )
+    Command
+
+1. List Crontab Entries
+
+List or manage the task with crontab command with -l option for current user.
+
+# crontab -l
+00 10 * * * /bin/ls >/ls.txt
+
+2. Edit Crontab Entries
+
+To edit crontab entry, use -e option as shown below. In the below example will open schedule jobs in VI editor. Make a necessary changes and quit pressing :wq keys which saves the setting automatically.
+
+# crontab -e
+
+3. List Scheduled Cron Jobs
+
+To list scheduled jobs of a particular user called tecmint using option as -u (User) and -l (List).
+
+# crontab -u tecmint -l
+no crontab for tecmint
+
+Note: Only root user have complete privileges to see other users crontab entry. Normal user can’t view it others.
+4. Remove Crontab Entry
+
+Caution: Crontab with -r parameter will remove complete scheduled jobs without confirmation from crontab. Use -i option before deleting user’s crontab.
+
+# crontab -r
+
+5. Prompt Before Deleting Crontab
+
+crontab with -i option will prompt you confirmation from user before deleting user’s crontab.
+
+# crontab -i -r
+crontab: really delete root's crontab?
+
+6. Allowed special character (*, -, /, ?, #)
+
+    Asterik(*) – Match all values in the field or any possible value.
+    Hyphen(-) – To define range.
+    Slash (/) – 1st field /10 meaning every ten minute or increment of range.
+    Comma (,) – To separate items.
+
+7. System Wide Cron Schedule
+
+System administrator can use predefine cron directory as shown below.
+
+    /etc/cron.d
+    /etc/cron.daily
+    /etc/cron.hourly
+    /etc/cron.monthly
+    /etc/cron.weekly
+
+8. Schedule a Jobs for Specific Time
+
+The below jobs delete empty files and directory from /tmp at 12:30 am daily. You need to mention user name to perform crontab command. In below example root user is performing cron job.
+
+# crontab -e
+30 0 * * *   root   find /tmp -type f -empty -delete
+
+9. Special Strings for Common Schedule
+Strings   Meanings
+@reboot   Command will run when the system reboot.
+@daily    Once per day or may use @midnight.
+@weekly   Once per week.
+@yearly   Once per year. we can use @annually keyword also.
+
+Need to replace five fields of cron command with keyword if you want to use the same.
+10. Multiple Commands with Double amper-sand(&&)
+
+In below example command1 and command2 run daily.
+
+# crontab -e
+@daily <command1> && <command2>
+
+11. Disable Email Notification.
+
+By default cron send mail to user account executing cronjob. If you want to disable it add your cron job similar to below example. Using >/dev/null 2>&1 option at the end of the file will redirect all the output of the cron 
+results under /dev/null.
+
+[root@tecmint ~]# crontab -e
+* * * * * >/dev/null 2>&1
+
+conclusion: Automation of tasks may help us to perform our task better ways, error free and efficiently. You may refer manual page of crontab for more information typing ‘man crontab‘ command in your terminal.
 
 
 #############################################################################################################################################################################################
@@ -9162,6 +9285,18 @@ figure:hover figcaption {
 
 h1, p {
     color:#ffffff;
+}
+
+# Over bright images at :hover
+
+html:root input[type="image"] {
+  opacity: .95 !important;
+  border-radius: 5px !important;
+}
+
+html:root input[type="image"]:hover {
+  opacity: 1 !important;
+  border-radius: 5px !important;
 }
 
 
@@ -19873,6 +20008,15 @@ requests: número total de peticiones de clientes
 Reading: número de conexiones de las que nginx está leyendo la cabecera request.
 Writing: número de conexiones de las que nginx está enviando respuesta al cliente
 Waiting; conexiones en espera de aceptar requests de clientes.
+
+
+#### robot.txt example
+
+User-agent: *
+Disallow: /administration/
+Disallow: /locale/
+Disallow: /themes/
+Disallow: /print.php
 
 #############################################################################################################################################################################################
 
