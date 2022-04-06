@@ -2,6 +2,9 @@
 
 ########################################################################################### sysadmin ########################################################################################
 
+
+browsh solution:  go env -w GO111MODULE=off
+
 solo.to/win11
 
 # lindana
@@ -559,10 +562,10 @@ grub-mkconfig -o /boot/grub/grub.cfg
 useradd -m -G sudo -s /bin/bash chuck
 
 # Arch Linux derivated
-useradd -m -G wheel -s /bin/bash curiousx
+useradd -m -G wheel -s /bin/bash chuck
 
 # Setting a password for my user #
-passwd curiousx
+passwd chuck
 
 # Check user status like expire date, password
 
@@ -5760,7 +5763,7 @@ def isVpn(self, ip):
 
 #### server http cgi smtp python ####
 
-python -m SimpleHTTPServer
+python -m http.server
 
 #### iniciar un servidor cgi en python util para probar scripts ####
 
@@ -5964,8 +5967,13 @@ mkfs.ext4 -j -o extent -l "etiqueta" -e discard /dev/sdx
 
 mkfs.fat -f 32 /dev/sdxx
 
+#### formatear an usb to vfat (fat)
 
+sudo mkfs.vfat -F 32 -n "Tiktok" /dev/sdXx
 
+#### format exfat file system an usb to exfat
+
+sudo mkfs.exfat -L Music /dev/sdXx
 
 
 #############################################################################################################################################################################################
