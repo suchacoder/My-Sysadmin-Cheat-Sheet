@@ -190,6 +190,10 @@ echo "Message Body Here" | mutt -s "Subject Here" -a backup.zip user@example.com
 
 mpv dvdnav:// --dvd-device=archive.iso
 
+# Webcam
+
+mpv av://v4l2:/dev/video0 --profile=low-latency --untimed
+
 
 ##################################
 ### my arch installation guide ###
@@ -750,6 +754,8 @@ for i in *; do echo $i; done
 
 for i in *; do mencoder "$i" -of avi -ovc xvid -oac mp3lame -xvidencopts "fixed_quant=4:aspect=16/9:threads=4" -lameopts vbr=2:br=128 -vf scale=720:576 -ofps 25 -o "../.jb/burn/$i.avi" ; done
 
+for i in *; do mencoder "$i" -of avi -ovc xvid -oac mp3lame -xvidencopts "fixed_quant=4:threads=4" -lameopts vbr=2:br=128 -ofps 25 -o "../conv/$i.avi" ; done
+
 OR
 
 for i in /etc/*.conf; do cp $i /backup; done
@@ -1254,6 +1260,8 @@ The lib linux-vdso.so ( as well as linux-gate.so) is not going to be found. It i
 -r, --reset         Reset all options to their factory values
 
 ############################################################################################ spunkybot ######################################################################################
+
+https://iphub.info/
 
 ### VPN detector ###
 
@@ -12927,6 +12935,36 @@ puerto = puerto destino del trafico.
 
 accion = DROP o ACCEPT.
 
+
+####################################
+### iptables-http-dos-shield.txt ###
+####################################
+
+# Those rules protect HTTP/HTTPS services for both IPv4 and IPv6 sources as such:
+# 1. Prevent a /32 IPv4 or /64 IPv6 to open more than 10 HTTPS?/TCP connections per second (the limit is high, but this still shield against some attacks) — DROP TCP packets in this case, to avoid generating egress traffic sending a RST
+# 2. Limit ingress bandwidth to HTTPS? services to 32KB/sec (adjust to your needs, in my case it is used to shield a WebSocket backend against incoming WebSocket message floods)
+# 3. Limit the number of simultaneous ongoing connections to HTTPS? to 40 (also, high limit, adjust to your needs)
+
+# The protections those rules offer:
+# 1. Prevent crypto-DOS (ie. a client that proceed too many key exchanges and thus exhaust server CPU)
+# 2. Prevent WebSocket floodings (eg. I use this for Socket.IO, which has no efficient way to rate-limit received messages before they get parsed)
+# 3. Prevent ephemeral TCP port exhaustion due to a client holding too many TCP connections
+# 4. Prevent IPv6 rotation attacks where a client that possesses a /64 IPv6 block (most hold a /5x or /6x block) uses different ephemeral IPv6 on this /64 subnet to bypass any /128 rate-limiter. It is always safer to rate-limit on the allocated block, hence the /64 (for IPv4 the issue doesn't exist, as IPv4 are expensive and thus people are allocated /32 blocks in 99% cases).
+
+# IPTables (IPv4)
+:FIREWALL
+-A INPUT -i eth0 -p tcp -m tcp -m multiport --dports 80,443 -m state --state NEW -m hashlimit --hashlimit-above 10/sec --hashlimit-burst 20 --hashlimit-mode srcip --hashlimit-name http_rate -j DROP
+-A INPUT -i eth0 -p tcp -m tcp -m multiport --dports 80,443 -m hashlimit --hashlimit-above 32kb/s --hashlimit-mode srcip --hashlimit-name http_bandwidth -j DROP
+-A INPUT -i eth0 -p tcp -m tcp -m multiport --dports 80,443 -m connlimit --connlimit-above 40 --connlimit-mask 32 --connlimit-saddr -j REJECT --reject-with tcp-reset
+
+# IPTables (IPv6)
+:FIREWALL
+-A INPUT -i eth0 -p tcp -m tcp -m multiport --dports 80,443 -m state --state NEW -m hashlimit --hashlimit-above 10/sec --hashlimit-burst 20 --hashlimit-mode srcip --hashlimit-name http_rate --hashlimit-srcmask 64 -j DROP
+-A INPUT -i eth0 -p tcp -m tcp -m multiport --dports 80,443 -m hashlimit --hashlimit-above 32kb/s --hashlimit-mode srcip --hashlimit-name http_bandwidth --hashlimit-srcmask 64 -j DROP
+-A INPUT -i eth0 -p tcp -m tcp -m multiport --dports 80,443 -m connlimit --connlimit-above 40 --connlimit-mask 64 --connlimit-saddr -j REJECT --reject-with tcp-reset
+
+
+
 #############################################################################################################################################################################################
 
 # Attack prevention (only 10 attempts by an IP every 3 minutes, drop the rest)
@@ -13915,158 +13953,6 @@ permitimos que los equipos de las otras redes accedaan a nuestra red..
 
 [root@test ~]# iptables -A FORWARD -i tun+ -j ACCEPT 
 [root@test ~]# iptables -A FORWARD -o tun+ -j ACCEPT 
-
-
-
-#### thegeekstuff
-
-#### modify this file accordingly for your specific requirements ####
-#### http://www.thegeekstuff.com ####
-#### 1. delete all existing rules iptables ####
-
-iptables -F
-
-#### 2. set default chain policies iptables ####
-
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-iptables -P OUTPUT DROP
-
-#### 3. block a specific ip-address iptables ####
-
-block_this_ip="x.x.x.x"
-iptables -A INPUT -s "$block_this_ip" -j DROP
-
-#### 4. allow all incoming ssh iptables ####
-
-iptables -A INPUT -i eth0 -p TCP --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
-
-#### 5. allow incoming ssh only from a sepcific network iptables ####
-
-iptables -A INPUT -i eth0 -p TCP -s 192.168.200.0/24 --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
-
-#### 6. allow incoming http http iptables ####
-
-iptables -A INPUT -i eth0 -p TCP --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 80 -m state --state ESTABLISHED -j ACCEPT
-
-#### allow incoming https https iptables ####
-
-iptables -A INPUT -i eth0 -p TCP --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 443 -m state --state ESTABLISHED -j ACCEPT
-
-#### 7. multiports (allow incoming ssh ssh, http http, and https https) iptables ####
-
-iptables -A INPUT -i eth0 -p TCP -m multiport --dports 22,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP -m multiport --sports 22,80,443 -m state --state ESTABLISHED -j ACCEPT
-
-#### 8. allow outgoing ssh ssh iptables ####
-
-iptables -A OUTPUT -o eth0 -p TCP --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -i eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
-
-#### 9. allow outgoing ssh only to a specific network iptables ####
-
-iptables -A OUTPUT -o eth0 -p TCP -d 192.168.101.0/24 --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -i eth0 -p TCP --sport 22 -m state --state ESTABLISHED -j ACCEPT
-
-#### 10. allow outgoing https https iptables ####
-
-iptables -A OUTPUT -o eth0 -p TCP --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -i eth0 -p TCP --sport 443 -m state --state ESTABLISHED -j ACCEPT
-
-#### 11. load balance incoming https https traffic iptables ####
-
-iptables -A prerouting -i eth0 -p TCP --dport 443 -m state --state NEW -m nth --counter 0 --every 3 --packet 0 -j DNAT --to-destination 192.168.1.101:443
-iptables -A prerouting -i eth0 -p TCP --dport 443 -m state --state NEW -m nth --counter 0 --every 3 --packet 1 -j DNAT --to-destination 192.168.1.102:443
-iptables -A prerouting -i eth0 -p TCP --dport 443 -m state --state NEW -m nth --counter 0 --every 3 --packet 2 -j DNAT --to-destination 192.168.1.103:443
-
-#### 12. ping from inside to outside iptables ####
-
-iptables -A OUTPUT -p ICMP --ICMP-type echo-request -j ACCEPT
-iptables -A INPUT -p ICMP --ICMP-type echo-reply -j ACCEPT
-
-#### 13. ping from outside to inside iptables ####
-
-iptables -A INPUT -p ICMP --ICMP-type echo-request -j ACCEPT
-iptables -A OUTPUT -p ICMP --ICMP-type echo-reply -j ACCEPT
-
-#### 14. allow loopback access iptables ####
-
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A OUTPUT -o lo -j ACCEPT
-
-#### 15. allow packets from internal network to reach external network. iptables ####
-#### if eth1 is connected to external network (internet) iptables ####
-#### if eth0 is connected to internal network (192.168.1.x) iptables ####
-
-iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT
-
-#### 16. allow outbound dns dns iptables ####
-
-iptables -A OUTPUT -p UDP -o eth0 --dport 53 -j ACCEPT
-iptables -A INPUT -p UDP -i eth0 --sport 53 -j ACCEPT
-
-#### 17. allow nis connections iptables ####
-#### rpcinfo -p | grep ypbind ; this port is 853 and 850 iptables ####
-
-iptables -A INPUT -p TCP --dport 111 -j ACCEPT
-iptables -A INPUT -p UDP --dport 111 -j ACCEPT
-iptables -A INPUT -p TCP --dport 853 -j ACCEPT
-iptables -A INPUT -p UDP --dport 853 -j ACCEPT
-iptables -A INPUT -p TCP --dport 850 -j ACCEPT
-iptables -A INPUT -p UDP --dport 850 -j ACCEPT
-
-#### 18. allow rsync from a specific network iptables ####
-
-iptables -A INPUT -i eth0 -p TCP -s 192.168.101.0/24 --dport 873 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 873 -m state --state ESTABLISHED -j ACCEPT
-
-#### 19. allow mysql connection only from a specific network iptables ####
-
-iptables -A INPUT -i eth0 -p TCP -s 192.168.200.0/24 --dport 3306 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 3306 -m state --state ESTABLISHED -j ACCEPT
-
-#### 20. allow sendmail or postfix iptables ####
-
-iptables -A INPUT -i eth0 -p TCP --dport 25 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 25 -m state --state ESTABLISHED -j ACCEPT
-
-#### 21. allow imap and imaps iptables ####
-
-iptables -A INPUT -i eth0 -p TCP --dport 143 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 143 -m state --state ESTABLISHED -j ACCEPT
-
-iptables -A INPUT -i eth0 -p TCP --dport 993 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 993 -m state --state ESTABLISHED -j ACCEPT
-
-#### 22. allow pop3 and pop3s iptables ####
-
-iptables -A INPUT -i eth0 -p TCP --dport 110 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 110 -m state --state ESTABLISHED -j ACCEPT
-
-iptables -A INPUT -i eth0 -p TCP --dport 995 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 995 -m state --state ESTABLISHED -j ACCEPT
-
-#### 23. prevent DOS attack iptables ####
-
-iptables -A INPUT -p TCP --dport 80 -m limit --limit 25/minute --limit-burst 100 -j ACCEPT
-
-#### 24. port forwarding 422 to 22 iptables ####
-
-iptables -t nat -A PREROUTING -p TCP -d 192.168.102.37 --dport 422 -j DNAT --to 192.168.102.37:22
-iptables -A INPUT -i eth0 -p TCP --dport 422 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o eth0 -p TCP --sport 422 -m state --state ESTABLISHED -j ACCEPT
-
-#### 25. Log dropped packets iptables ####
-
-iptables -N logging
-iptables -A INPUT -j logging
-iptables -A logging -m limit --limit 2/min -j LOG --log-prefix "iptables packet dropped: " --log-level 7
-iptables -A logging -j DROP
-
 
 
 #### terminal28
